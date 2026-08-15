@@ -29,24 +29,28 @@ export async function POST(request: NextRequest) {
 
     // Test connection
     const testResult = await pool.query('SELECT 1 as test');
-    console.log('Connection test:', testResult.rows);
+    console.log('Connection test PASSED:', testResult.rows);
 
     const body = await request.json();
+    console.log('Request body received, rows count:', body.rows?.length);
+
     const rows = body.rows as ImportRow[];
 
     if (!rows || rows.length === 0) {
+      console.log('ERROR: Sin datos');
       return NextResponse.json({ success: false, message: 'Sin datos' }, { status: 400 });
     }
 
+    console.log('Starting loop, total rows:', rows.length);
     let loaded = 0;
     let errors = 0;
 
     for (const row of rows) {
       try {
+        console.log('ROW INICIO, cliente:', row['Nombre Cliente']);
+
         const idCliente = String(row['Id Cliente'] || '').trim();
         const nombreCliente = String(row['Nombre Cliente'] || '').trim();
-
-        console.log(`Procesando: ${nombreCliente}`);
         const rutCliente = String(row['Rut Cliente'] || '').trim();
         const ejecutivo = String(row['Ejecutivo PostVenta'] || '').trim();
 
