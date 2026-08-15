@@ -18,7 +18,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await sql.query('SELECT * FROM renovaciones ORDER BY fecha_vencimiento ASC LIMIT 50');
+    const result = await sql.query(`
+      SELECT
+        r.*,
+        c.nombre_cliente,
+        c.servicio,
+        c.plan,
+        c.segmento,
+        c.region,
+        c.cantidad_empleados,
+        u.nombre as ejecutivo_nombre
+      FROM renovaciones r
+      JOIN clientes c ON r.cliente_id = c.id
+      JOIN usuarios u ON r.ejecutivo_id = u.id
+      ORDER BY r.fecha_vencimiento ASC
+      LIMIT 50
+    `);
 
     return NextResponse.json({
       success: true,

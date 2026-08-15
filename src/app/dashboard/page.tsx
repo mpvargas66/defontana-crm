@@ -131,67 +131,39 @@ export default function DashboardPage() {
               No hay renovaciones registradas
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Cliente
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Fecha Vencimiento
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Estado
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Semáforo
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Monto UF
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Riesgo
-                    </th>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f0f0f0' }}>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Cliente</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Servicio</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Plan</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Segmento</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Ejecutivo</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Vencimiento</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Monto (UF)</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Estado</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Semáforo</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {renovaciones.slice(0, 10).map((renovacion) => (
-                    <tr key={renovacion.id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {/* Will be populated with cliente name in FASE 2 */}
-                        Cliente #{renovacion.cliente_id}
+                  {renovaciones.slice(0, 20).map((r: any) => (
+                    <tr key={r.id}>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.nombre_cliente}</td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.servicio || '-'}</td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.plan || '-'}</td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.segmento || '-'}</td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.ejecutivo_nombre}</td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                        {new Date(r.fecha_vencimiento).toLocaleDateString('es-CL')}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {new Date(renovacion.fecha_vencimiento).toLocaleDateString('es-CL')}
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                        {typeof r.monto_uf === 'number'
+                          ? r.monto_uf.toFixed(2)
+                          : parseFloat(String(r.monto_uf || 0)).toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                          {renovacion.estado}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            semaforoColors[renovacion.semaforo] ||
-                            semaforoColors['indeterminado']
-                          }`}
-                        >
-                          {renovacion.semaforo}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {renovacion.monto_uf
-                          ? `$${
-                              typeof renovacion.monto_uf === 'number'
-                                ? renovacion.monto_uf.toFixed(2)
-                                : parseFloat(String(renovacion.monto_uf)).toFixed(2)
-                            } UF`
-                          : '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {renovacion.riesgo_churn_score}/10
-                      </td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.estado}</td>
+                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.semaforo}</td>
                     </tr>
                   ))}
                 </tbody>
