@@ -33,17 +33,16 @@ export default function DataImportPage() {
     }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
       const response = await fetch('/api/admin/import', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows: preview }),
       });
 
       const data = await response.json();
-      setMessage(response.ok ? `✅ Cargados ${data.data?.insertados || 0} registros` : `❌ ${data.error || data.message}`);
+      setMessage(response.ok ? `✅ Cargados ${data.loaded} registros` : `❌ ${data.message}`);
       if (response.ok) {
         setFile(null);
         setPreview([]);
