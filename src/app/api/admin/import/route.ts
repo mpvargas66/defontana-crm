@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
       try {
         const idCliente = String(row['Id Cliente'] || '').trim();
         const nombreCliente = String(row['Nombre Cliente'] || '').trim();
+
+        console.log(`Procesando: ${nombreCliente}`);
         const rutCliente = String(row['Rut Cliente'] || '').trim();
         const ejecutivo = String(row['Ejecutivo PostVenta'] || '').trim();
 
@@ -182,8 +184,13 @@ export async function POST(request: NextRequest) {
         );
 
         loaded++;
-      } catch (err) {
-        console.error('Error:', err);
+      } catch (err: any) {
+        console.error('Error procesando row:', {
+          nombreCliente,
+          error: err.message,
+          code: err.code,
+          detail: err.detail,
+        });
         errors++;
       }
     }
