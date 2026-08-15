@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
 import { motion } from 'framer-motion';
 
 interface ImportRow {
@@ -19,14 +19,16 @@ export default function DataImportPage() {
     if (!selectedFile) return;
 
     setFile(selectedFile);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const workbook = XLSX.read(event.target?.result, { type: 'binary' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json<ImportRow>(sheet);
-      setPreview(data.slice(0, 5));
-    };
-    reader.readAsBinaryString(selectedFile);
+
+    Papa.parse(selectedFile, {
+      header: true,
+      complete: (results) => {
+        setPreview(results.data.slice(0, 5) as ImportRow[]);
+      },
+      error: (error) => {
+        setMessage(`❌ Error: ${error.message}`);
+      },
+    });
   };
 
   const handleUpload = async () => {
@@ -48,6 +50,8 @@ export default function DataImportPage() {
       const data = await response.json();
       if (response.ok) {
         setMessage(`✅ Cargados ${data.data?.insertados || 0} registros`);
+        setFile(null);
+        setPreview([]);
       } else {
         setMessage(`❌ Error: ${data.error || data.message}`);
       }
@@ -62,7 +66,7 @@ export default function DataImportPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-4">Importar Datos</h1>
-        <p className="text-gray-600 mb-8">Sube un archivo Excel con renovaciones</p>
+        <p className="text-gray-600 mb-8">Sube un archivo Excel o CSV con renovaciones</p>
 
         <motion.div
           className="border-2 border-dashed border-blue-300 rounded-lg p-8 bg-blue-50 mb-8"
@@ -79,13 +83,13 @@ export default function DataImportPage() {
 
         {preview.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Preview</h2>
+            <h2 className="text-xl font-bold mb-4">Preview (primeras 5 filas)</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse border">
                 <thead>
                   <tr className="bg-gray-200">
                     {Object.keys(preview[0]).map((key) => (
-                      <th key={key} className="border p-2 text-left">
+                      <th key={key} className="border p-2 text-left text-xs">
                         {key}
                       </th>
                     ))}
@@ -95,8 +99,8 @@ export default function DataImportPage() {
                   {preview.map((row, idx) => (
                     <tr key={idx} className="border">
                       {Object.values(row).map((val, idx) => (
-                        <td key={idx} className="border p-2">
-                          {String(val)}
+                        <td key={idx} className="border p-2 text-xs">
+                          {String(val).substring(0, 50)}
                         </td>
                       ))}
                     </tr>
@@ -110,14 +114,14 @@ export default function DataImportPage() {
         <button
           onClick={handleUpload}
           disabled={!file || loading}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold disabled:opacity-50"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold disabled:opacity-50 hover:bg-blue-700"
         >
           {loading ? 'Cargando...' : 'Cargar a BD'}
         </button>
 
         {message && (
           <motion.p
-            className="mt-4 text-lg"
+            className="mt-4 text-lg font-semibold"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
