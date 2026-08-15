@@ -120,55 +120,75 @@ export async function POST(request: NextRequest) {
         }
 
         // INSERT CLIENTES con TODOS los campos
-        const clientResult = await pool.query(
-          `INSERT INTO clientes
-           (id_cliente, nombre_cliente, rut_cliente, servicio, plan, segmento, region, cantidad_empleados,
-            fecha_creacion, modular, cuadrante, tipo_pago, cliente_de_cartera, condicion, vigente,
-            tarjeta_suscrita, ultima_conexion, fecha_tarjeta_suscrita, usa_pos, usa_tivendo, usa_zenda,
-            origen, fecha_inicio_servicio, pais, id_empresa, rut_empresa, nombre_empresa,
-            estado_operacion, estado_cliente, estado_cliente_manual, plan_soporte, cuadrante_zenda,
-            es_activo, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
-                   $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, true, NOW(), NOW())
-           ON CONFLICT (id_cliente) DO UPDATE SET updated_at = NOW()
-           RETURNING id`,
-          [
-            idCliente,
-            nombreCliente,
-            rutCliente,
-            servicio,
-            plan,
-            segmento,
-            region,
-            cantidadEmpleados,
-            fechaCreacion,
-            modular,
-            cuadrante,
-            tipoPago,
-            clienteCartera,
-            condicion,
-            vigente,
-            tarjetaSuscrita,
-            ultimaConexion,
-            fechaTarjetaSuscrita,
-            usaPos,
-            usaTivendo,
-            usaZenda,
-            origen,
-            fechaInicio,
-            pais,
-            idEmpresa,
-            rutEmpresa,
-            nombreEmpresa,
-            estadoOperacion,
-            estadoCliente,
-            estadoClienteManual,
-            planSoporte,
-            cuadranteZenda,
-          ]
-        );
+        console.log('About to insert cliente:', {
+          idCliente,
+          nombreCliente,
+          servicioLength: servicio?.length,
+          planLength: plan?.length,
+          regionLength: region?.length,
+        });
 
-        const clienteId = clientResult.rows[0].id;
+        let clienteId: number;
+        try {
+          const clientResult = await pool.query(
+            `INSERT INTO clientes
+             (id_cliente, nombre_cliente, rut_cliente, servicio, plan, segmento, region, cantidad_empleados,
+              fecha_creacion, modular, cuadrante, tipo_pago, cliente_de_cartera, condicion, vigente,
+              tarjeta_suscrita, ultima_conexion, fecha_tarjeta_suscrita, usa_pos, usa_tivendo, usa_zenda,
+              origen, fecha_inicio_servicio, pais, id_empresa, rut_empresa, nombre_empresa,
+              estado_operacion, estado_cliente, estado_cliente_manual, plan_soporte, cuadrante_zenda,
+              es_activo, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
+                     $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, true, NOW(), NOW())
+             ON CONFLICT (id_cliente) DO UPDATE SET updated_at = NOW()
+             RETURNING id`,
+            [
+              idCliente,
+              nombreCliente,
+              rutCliente,
+              servicio,
+              plan,
+              segmento,
+              region,
+              cantidadEmpleados,
+              fechaCreacion,
+              modular,
+              cuadrante,
+              tipoPago,
+              clienteCartera,
+              condicion,
+              vigente,
+              tarjetaSuscrita,
+              ultimaConexion,
+              fechaTarjetaSuscrita,
+              usaPos,
+              usaTivendo,
+              usaZenda,
+              origen,
+              fechaInicio,
+              pais,
+              idEmpresa,
+              rutEmpresa,
+              nombreEmpresa,
+              estadoOperacion,
+              estadoCliente,
+              estadoClienteManual,
+              planSoporte,
+              cuadranteZenda,
+            ]
+          );
+
+          clienteId = clientResult.rows[0].id;
+          console.log('Cliente inserted successfully:', clienteId);
+        } catch (dbErr: any) {
+          console.error('DB Insert Error:', {
+            message: dbErr.message,
+            code: dbErr.code,
+            constraint: dbErr.constraint,
+            detail: dbErr.detail,
+          });
+          throw dbErr;
+        }
 
         // Obtén o crea ejecutivo
         let ejecutivoId = 1;
