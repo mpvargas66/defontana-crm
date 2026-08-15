@@ -10,6 +10,18 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+function excelDateToJSDate(excelDate: string | number | undefined): Date {
+  if (!excelDate) return new Date();
+
+  const numDate = typeof excelDate === 'string' ? parseFloat(excelDate) : excelDate;
+  if (isNaN(numDate)) return new Date();
+
+  // Excel epoch: 1900-01-01
+  const excelEpoch = new Date(1900, 0, 1);
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return new Date(excelEpoch.getTime() + numDate * msPerDay);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -29,7 +41,7 @@ export async function POST(request: NextRequest) {
         const nombreCliente = String(row['Nombre Cliente'] || '').trim();
         const rutCliente = String(row['Rut Cliente'] || '').trim();
         const ejecutivo = String(row['Ejecutivo PostVenta'] || '').trim();
-        const fechaVencimiento = String(row['Fecha Expiración'] || '').trim();
+        const fechaVencimiento = excelDateToJSDate(row['Fecha Expiración']);
         const totalRenovacion = parseFloat(
           String(row['Total Renovación (UF)'] || '0')
             .replace(/[^\d.]/g, '')
@@ -42,12 +54,10 @@ export async function POST(request: NextRequest) {
         const plan = String(row['Plan'] || '').trim();
         const segmento = String(row['Segmento'] || '').trim();
         const region = String(row['Región'] || row['Region'] || '').trim();
-        const cantidadEmpleados = row['Cantidad Empleados'] || row['Empleados']
-          ? parseInt(String(row['Cantidad Empleados'] || row['Empleados']), 10)
+        const cantidadEmpleados = row['Cantidad Empleados']
+          ? parseInt(String(row['Cantidad Empleados']), 10)
           : null;
-        const fechaCreacion = row['Fecha Creación'] || row['Fecha Creacion']
-          ? new Date(String(row['Fecha Creación'] || row['Fecha Creacion']))
-          : new Date();
+        const fechaCreacion = excelDateToJSDate(row['Fecha Creacion'] || row['Fecha Creación']);
 
         console.log(`Row: ${nombreCliente}, Servicio: ${servicio}, Plan: ${plan}, Segmento: ${segmento}`);
 
