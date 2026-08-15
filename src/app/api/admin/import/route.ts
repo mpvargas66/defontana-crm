@@ -29,10 +29,14 @@ export async function POST(request: NextRequest) {
         const rutCliente = String(row['Rut Cliente'] || '').trim();
         const ejecutivo = String(row['Ejecutivo PostVenta'] || '').trim();
         const fechaVencimiento = String(row['Fecha Expiración'] || '').trim();
-        const totalRenovacion = parseFloat(String(row['Total Renovación (UF)'] || '0').trim());
+        const totalRenovacion = parseFloat(
+          String(row['Total Renovación (UF)'] || '0')
+            .replace(/[^\d.]/g, '')
+            .trim()
+        );
         const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
 
-        console.log(`Row: ${nombreCliente}, Ejecutivo: ${ejecutivo}, Monto: ${totalRenovacion}`);
+        console.log(`Row: ${nombreCliente}, Ejecutivo: ${ejecutivo}, Monto: ${totalRenovacion}, Type: ${typeof totalRenovacion}`);
 
         if (!idCliente || !nombreCliente) {
           console.log('Saltando: Sin id o nombre');
