@@ -5,5 +5,6 @@ if (!process.env.DATABASE_URL) {
 }
 
 const sql = postgres(process.env.DATABASE_URL);
+const db = sql; // Alias para compatibilidad
 
-export { sql };
+export { sql, db };
