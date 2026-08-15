@@ -24,23 +24,18 @@ export async function POST(request: NextRequest) {
 
     for (const row of rows) {
       try {
-        console.log('Procesando:', {
-          idCliente: row['Id Cliente'] || row['ID Cliente'],
-          nombreCliente: row['Nombre'],
-          ejecutivo: row['Ejecutivo PostVenta'],
-          monto: row['Total Renovación (UF)'],
-        });
-
-        const idCliente = String(row['Id Cliente'] || row['ID Cliente'] || '').trim();
-        const nombreCliente = String(row['Nombre'] || '').trim();
-        const rutCliente = String(row['Rut'] || '').trim();
+        const idCliente = String(row['Id Cliente'] || '').trim();
+        const nombreCliente = String(row['Nombre Cliente'] || '').trim();
+        const rutCliente = String(row['Rut Cliente'] || '').trim();
         const ejecutivo = String(row['Ejecutivo PostVenta'] || '').trim();
         const fechaVencimiento = String(row['Fecha Expiración'] || '').trim();
-        const totalRenovacion = parseFloat(String(row['Total Renovación (UF)'] || '0'));
+        const totalRenovacion = parseFloat(String(row['Total Renovación (UF)'] || '0').trim());
         const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
 
+        console.log(`Row: ${nombreCliente}, Ejecutivo: ${ejecutivo}, Monto: ${totalRenovacion}`);
+
         if (!idCliente || !nombreCliente) {
-          console.log('Saltando fila: falta idCliente o nombreCliente');
+          console.log('Saltando: Sin id o nombre');
           errors++;
           continue;
         }
