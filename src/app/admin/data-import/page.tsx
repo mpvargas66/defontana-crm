@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Papa from 'papaparse';
-import { motion } from 'framer-motion';
 
 interface ImportRow {
   [key: string]: any;
@@ -23,9 +22,9 @@ export default function DataImportPage() {
     Papa.parse(selectedFile, {
       header: true,
       complete: (results) => {
-        setPreview(results.data.slice(0, 5) as ImportRow[]);
+        setPreview((results.data || []).slice(0, 5) as ImportRow[]);
       },
-      error: (error) => {
+      error: (error: any) => {
         setMessage(`❌ Error: ${error.message}`);
       },
     });
@@ -48,87 +47,74 @@ export default function DataImportPage() {
       });
 
       const data = await response.json();
-      if (response.ok) {
-        setMessage(`✅ Cargados ${data.data?.insertados || 0} registros`);
-        setFile(null);
-        setPreview([]);
-      } else {
-        setMessage(`❌ Error: ${data.error || data.message}`);
-      }
+      setMessage(response.ok ? `✅ Cargados ${data.data?.insertados || 0}` : `❌ ${data.error || data.message}`);
     } catch (error) {
-      setMessage('Error en upload');
+      setMessage('❌ Error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4">Importar Datos</h1>
-        <p className="text-gray-600 mb-8">Sube un archivo Excel o CSV con renovaciones</p>
+    <div style={{ padding: '40px', fontFamily: 'system-ui' }}>
+      <h1>Importar Datos</h1>
 
-        <motion.div
-          className="border-2 border-dashed border-blue-300 rounded-lg p-8 bg-blue-50 mb-8"
-          whileHover={{ scale: 1.02 }}
-        >
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileChange}
-            className="block w-full"
-          />
-          {file && <p className="mt-4 text-green-600">✓ {file.name}</p>}
-        </motion.div>
-
-        {preview.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Preview (primeras 5 filas)</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse border">
-                <thead>
-                  <tr className="bg-gray-200">
-                    {Object.keys(preview[0]).map((key) => (
-                      <th key={key} className="border p-2 text-left text-xs">
-                        {key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.map((row, idx) => (
-                    <tr key={idx} className="border">
-                      {Object.values(row).map((val, idx) => (
-                        <td key={idx} className="border p-2 text-xs">
-                          {String(val).substring(0, 50)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={handleUpload}
-          disabled={!file || loading}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold disabled:opacity-50 hover:bg-blue-700"
-        >
-          {loading ? 'Cargando...' : 'Cargar a BD'}
-        </button>
-
-        {message && (
-          <motion.p
-            className="mt-4 text-lg font-semibold"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            {message}
-          </motion.p>
-        )}
+      <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+        <input
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          onChange={handleFileChange}
+          style={{ padding: '10px', fontSize: '16px' }}
+        />
       </div>
+
+      {file && <p style={{ color: 'green' }}>✓ {file.name}</p>}
+
+      {preview.length > 0 && (
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+          <h2>Preview</h2>
+          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f0f0f0' }}>
+                {Object.keys(preview[0]).map((key) => (
+                  <th key={key} style={{ border: '1px solid #ddd', padding: '8px' }}>
+                    {key}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {preview.map((row, idx) => (
+                <tr key={idx}>
+                  {Object.values(row).map((val, idx) => (
+                    <td key={idx} style={{ border: '1px solid #ddd', padding: '8px' }}>
+                      {String(val).substring(0, 50)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <button
+        onClick={handleUpload}
+        disabled={!file || loading}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          backgroundColor: file && !loading ? '#0066cc' : '#ccc',
+          color: 'white',
+          border: 'none',
+          cursor: file && !loading ? 'pointer' : 'default',
+          borderRadius: '4px',
+        }}
+      >
+        {loading ? 'Cargando...' : 'Cargar a BD'}
+      </button>
+
+      {message && <p style={{ marginTop: '20px', fontSize: '16px' }}>{message}</p>}
     </div>
   );
 }
