@@ -90,7 +90,7 @@ export default function DashboardPage() {
                     }}
                   >
                     <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      {r.nombre_cliente || 'N/A'}
+                      {r.cliente?.nombre_cliente || 'N/A'}
                     </td>
                     <td style={{ border: '1px solid #ddd', padding: '12px' }}>
                       {r.ejecutivo_nombre || 'N/A'}
@@ -152,7 +152,7 @@ export default function DashboardPage() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-                    {selectedRenovacion.nombre_cliente}
+                    {selectedRenovacion.cliente?.nombre_cliente}
                   </h2>
                   <button
                     onClick={handleCloseModal}
@@ -170,32 +170,32 @@ export default function DashboardPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>RUT</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.rut_cliente || 'N/A'}</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.rut_cliente || 'N/A'}</p>
                   </div>
 
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Servicio</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.servicio || 'N/A'}</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.servicio || 'N/A'}</p>
                   </div>
 
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Plan</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.plan || 'N/A'}</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.plan || 'N/A'}</p>
                   </div>
 
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Segmento</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.segmento || 'N/A'}</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.segmento || 'N/A'}</p>
                   </div>
 
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Región</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.region || 'N/A'}</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.region || 'N/A'}</p>
                   </div>
 
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Empleados</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cantidad_empleados || 'N/A'}</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.cantidad_empleados || 'N/A'}</p>
                   </div>
 
                   <div>
@@ -230,8 +230,8 @@ export default function DashboardPage() {
                   <div>
                     <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Fecha Creación</p>
                     <p style={{ margin: 0, fontWeight: '500' }}>
-                      {selectedRenovacion.fecha_creacion
-                        ? new Date(selectedRenovacion.fecha_creacion).toLocaleDateString('es-CL')
+                      {selectedRenovacion.cliente?.fecha_creacion
+                        ? new Date(selectedRenovacion.cliente.fecha_creacion).toLocaleDateString('es-CL')
                         : 'N/A'}
                     </p>
                   </div>
