@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
-    "@vercel/postgres": "^0.10.0",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.0",
+    "neon": "^3.2.2",
     "next": "16.3.1",
     "next-auth": "^5.0.0-beta.32",
     "react": "19.2.8",

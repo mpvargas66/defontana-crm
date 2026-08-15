@@ -19,11 +19,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = String(credentials.password);
 
         try {
-          const result = await sql<Usuario>`
-            SELECT * FROM usuarios WHERE email = ${email}
-          `;
+          const result = await sql(
+            'SELECT * FROM usuarios WHERE email = $1',
+            [email]
+          );
 
-          const usuario = result.rows[0];
+          const usuario = result[0];
 
           if (!usuario) return null;
 

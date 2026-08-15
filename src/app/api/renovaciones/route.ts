@@ -18,11 +18,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await sql`SELECT * FROM renovaciones ORDER BY fecha_vencimiento ASC LIMIT 50`;
+    const result = await sql('SELECT * FROM renovaciones ORDER BY fecha_vencimiento ASC LIMIT 50');
 
     return NextResponse.json({
       success: true,
-      data: result.rows,
+      data: result,
     } as ApiResponse<unknown>);
   } catch (error) {
     console.error('GET /api/renovaciones error:', error);
@@ -67,20 +67,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await sql`
-      INSERT INTO renovaciones (
+    const result = await sql(
+      `INSERT INTO renovaciones (
         cliente_id, fecha_vencimiento, ciclo, monto_uf, mrr_uf,
         ejecutivo_id, estado, semaforo
       )
-      VALUES (
-        ${cliente_id}, ${new Date(fecha_vencimiento).toISOString()}, ${ciclo},
-        ${monto_uf}, ${mrr_uf}, ${ejecutivo_id}, ${estado}, ${semaforo}
-      )
-      RETURNING *
-    `;
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *`,
+      [
+        cliente_id,
+        new Date(fecha_vencimiento).toISOString(),
+        ciclo,
+        monto_uf,
+        mrr_uf,
+        ejecutivo_id,
+        estado,
+        semaforo,
+      ]
+    );
 
     return NextResponse.json(
-      { success: true, data: result.rows[0] as Renovacion } as ApiResponse<Renovacion>,
+      { success: true, data: result[0] as Renovacion } as ApiResponse<Renovacion>,
       { status: 201 }
     );
   } catch (error) {

@@ -1,11 +1,7 @@
-import { sql } from '@vercel/postgres';
-
-console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length);
+import { neon } from '@neon/serverless';
 
 if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set in environment');
+  throw new Error('DATABASE_URL is not set');
 }
 
-export { sql };
-export const db = sql;
+export const sql = neon(process.env.DATABASE_URL);
