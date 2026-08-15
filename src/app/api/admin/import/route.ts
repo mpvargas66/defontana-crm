@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { ApiResponse } from '@/types';
 
 interface ImportRow {
   [key: string]: any;
@@ -9,18 +8,6 @@ interface ImportRow {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
-
-function excelDateToJSDate(excelDate: string | number | undefined): Date {
-  if (!excelDate) return new Date();
-
-  const numDate = typeof excelDate === 'string' ? parseFloat(excelDate) : excelDate;
-  if (isNaN(numDate)) return new Date();
-
-  // Excel epoch: 1900-01-01
-  const excelEpoch = new Date(1900, 0, 1);
-  const msPerDay = 24 * 60 * 60 * 1000;
-  return new Date(excelEpoch.getTime() + numDate * msPerDay);
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,33 +23,48 @@ export async function POST(request: NextRequest) {
 
     for (const row of rows) {
       try {
-        // Campos básicos
         const idCliente = String(row['Id Cliente'] || '').trim();
         const nombreCliente = String(row['Nombre Cliente'] || '').trim();
         const rutCliente = String(row['Rut Cliente'] || '').trim();
         const ejecutivo = String(row['Ejecutivo PostVenta'] || '').trim();
-        const fechaVencimiento = excelDateToJSDate(row['Fecha Expiración']);
-        const totalRenovacion = parseFloat(
-          String(row['Total Renovación (UF)'] || '0')
-            .replace(/[^\d.]/g, '')
-            .trim()
-        );
-        const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
 
-        // Campos nuevos
+        // MONTO - procesar ANTES que las fechas
+        let totalRenovacion = 0;
+        const montoStr = String(row['Total Renovación (UF)'] || '0').trim();
+        if (!isNaN(parseFloat(montoStr))) {
+          totalRenovacion = parseFloat(montoStr);
+        }
+
+        // FECHAS - convertir de Excel
+        const excelVencimiento = row['Fecha Expiración'];
+        let fechaVencimiento = new Date();
+        if (excelVencimiento && !isNaN(excelVencimiento)) {
+          const numDate = parseFloat(excelVencimiento);
+          fechaVencimiento = new Date((numDate - 25569) * 86400 * 1000);
+        }
+
+        const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
         const servicio = String(row['Servicio'] || '').trim();
         const plan = String(row['Plan'] || '').trim();
         const segmento = String(row['Segmento'] || '').trim();
         const region = String(row['Región'] || row['Region'] || '').trim();
-        const cantidadEmpleados = row['Cantidad Empleados']
-          ? parseInt(String(row['Cantidad Empleados']), 10)
-          : null;
-        const fechaCreacion = excelDateToJSDate(row['Fecha Creacion'] || row['Fecha Creación']);
 
-        console.log(`Row: ${nombreCliente}, Servicio: ${servicio}, Plan: ${plan}, Segmento: ${segmento}`);
+        let cantidadEmpleados = null;
+        const empStr = row['Cantidad Empleados'];
+        if (empStr && !isNaN(empStr)) {
+          cantidadEmpleados = parseInt(empStr, 10);
+        }
+
+        const excelCreacion = row['Fecha Creacion'] || row['Fecha Creación'];
+        let fechaCreacion = new Date();
+        if (excelCreacion && !isNaN(excelCreacion)) {
+          const numDate = parseFloat(excelCreacion);
+          fechaCreacion = new Date((numDate - 25569) * 86400 * 1000);
+        }
+
+        console.log(`[${nombreCliente}] Monto: ${totalRenovacion}, Vence: ${fechaVencimiento}`);
 
         if (!idCliente || !nombreCliente) {
-          console.log('Saltando: Sin id o nombre');
           errors++;
           continue;
         }
@@ -108,12 +110,12 @@ export async function POST(request: NextRequest) {
            (cliente_id, id_renovacion, fecha_vencimiento, ciclo, monto_uf, ejecutivo_id, semaforo, estado, created_at, updated_at)
            VALUES ($1, $2, $3, 'mensual', $4, $5, $6, 'por_contactar', NOW(), NOW())
            ON CONFLICT (id_renovacion) DO NOTHING`,
-          [clienteId, `${idCliente}-${Date.now()}`, new Date(fechaVencimiento), totalRenovacion || 0, ejecutivoId, semaforo]
+          [clienteId, `${idCliente}-${Date.now()}`, fechaVencimiento, totalRenovacion, ejecutivoId, semaforo]
         );
 
         loaded++;
       } catch (err) {
-        console.error('Error row:', row, err);
+        console.error('Error row:', err);
         errors++;
       }
     }
