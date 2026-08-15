@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
 
     for (const row of rows) {
       try {
+        // Campos básicos
         const idCliente = String(row['Id Cliente'] || '').trim();
         const nombreCliente = String(row['Nombre Cliente'] || '').trim();
         const rutCliente = String(row['Rut Cliente'] || '').trim();
@@ -36,7 +37,19 @@ export async function POST(request: NextRequest) {
         );
         const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
 
-        console.log(`Row: ${nombreCliente}, Ejecutivo: ${ejecutivo}, Monto: ${totalRenovacion}, Type: ${typeof totalRenovacion}`);
+        // Campos nuevos
+        const servicio = String(row['Servicio'] || '').trim();
+        const plan = String(row['Plan'] || '').trim();
+        const segmento = String(row['Segmento'] || '').trim();
+        const region = String(row['Región'] || row['Region'] || '').trim();
+        const cantidadEmpleados = row['Cantidad Empleados'] || row['Empleados']
+          ? parseInt(String(row['Cantidad Empleados'] || row['Empleados']), 10)
+          : null;
+        const fechaCreacion = row['Fecha Creación'] || row['Fecha Creacion']
+          ? new Date(String(row['Fecha Creación'] || row['Fecha Creacion']))
+          : new Date();
+
+        console.log(`Row: ${nombreCliente}, Servicio: ${servicio}, Plan: ${plan}, Segmento: ${segmento}`);
 
         if (!idCliente || !nombreCliente) {
           console.log('Saltando: Sin id o nombre');
@@ -45,11 +58,18 @@ export async function POST(request: NextRequest) {
         }
 
         const clientResult = await pool.query(
-          `INSERT INTO clientes (id_cliente, nombre_cliente, rut_cliente, es_activo, created_at, updated_at)
-           VALUES ($1, $2, $3, true, NOW(), NOW())
-           ON CONFLICT (id_cliente) DO UPDATE SET updated_at = NOW()
+          `INSERT INTO clientes
+           (id_cliente, nombre_cliente, rut_cliente, servicio, plan, segmento, region, cantidad_empleados, fecha_creacion, es_activo, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, NOW(), NOW())
+           ON CONFLICT (id_cliente) DO UPDATE SET
+             servicio = COALESCE(EXCLUDED.servicio, clientes.servicio),
+             plan = COALESCE(EXCLUDED.plan, clientes.plan),
+             segmento = COALESCE(EXCLUDED.segmento, clientes.segmento),
+             region = COALESCE(EXCLUDED.region, clientes.region),
+             cantidad_empleados = COALESCE(EXCLUDED.cantidad_empleados, clientes.cantidad_empleados),
+             updated_at = NOW()
            RETURNING id`,
-          [idCliente, nombreCliente, rutCliente]
+          [idCliente, nombreCliente, rutCliente, servicio, plan, segmento, region, cantidadEmpleados, fechaCreacion]
         );
 
         const clienteId = clientResult.rows[0].id;
