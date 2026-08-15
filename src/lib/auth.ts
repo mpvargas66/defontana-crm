@@ -28,7 +28,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (!usuario) return null;
 
-          if (password !== process.env.ADMIN_PASSWORD) {
+          const adminPassword = process.env.ADMIN_PASSWORD || 'dev123';
+          if (password !== adminPassword) {
             return null;
           }
 
