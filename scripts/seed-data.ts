@@ -2,6 +2,10 @@ import { Pool } from 'pg';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 
+interface SondaRow {
+  [key: string]: any;
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
@@ -11,18 +15,18 @@ async function seedData() {
     const file = fs.readFileSync('./SONDA.xlsx');
     const workbook = XLSX.read(file, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sheet);
+    const data = XLSX.utils.sheet_to_json<SondaRow>(sheet);
 
     console.log(`Leyendo ${data.length} registros de SONDA.xlsx`);
 
     for (const row of data) {
-      const idCliente = row['Id Cliente'] || row['ID Cliente'] || row['id_cliente'];
-      const nombreCliente = row['Nombre'] || row['nombre_cliente'];
-      const rutCliente = row['Rut'] || row['RUT'];
-      const ejecutivo = row['Ejecutivo PostVenta'] || row['ejecutivo'];
-      const fechaVencimiento = row['Fecha Expiración'] || row['fecha_vencimiento'];
-      const totalRenovacion = row['Total Renovación (UF)'] || row['monto_uf'];
-      const semaforo = row['Semáforo'] || 'verde';
+      const idCliente = (row['Id Cliente'] || row['ID Cliente'] || row['id_cliente']) as string;
+      const nombreCliente = (row['Nombre'] || row['nombre_cliente']) as string;
+      const rutCliente = (row['Rut'] || row['RUT']) as string;
+      const ejecutivo = (row['Ejecutivo PostVenta'] || row['ejecutivo']) as string;
+      const fechaVencimiento = (row['Fecha Expiración'] || row['fecha_vencimiento']) as string;
+      const totalRenovacion = (row['Total Renovación (UF)'] || row['monto_uf']) as number;
+      const semaforo = (row['Semáforo'] || 'verde') as string;
 
       if (!idCliente || !nombreCliente) continue;
 
