@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { sql } from '@/lib/db';
 import { Renovacion, ApiResponse } from '@/types';
 
 export async function PATCH(
@@ -19,39 +19,14 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
+    const { estado, semaforo, riesgo_churn_score } = body;
 
-    const allowedFields = [
-      'estado',
-      'semaforo',
-      'riesgo_churn_score',
-      'estado_operacion',
-      'tipo_pago',
-      'tarjeta_suscrita',
-      'requiere_follow_up',
-      'escalado_a_gerencia',
-      'monto_uf',
-      'mrr_uf',
-    ];
-
-    const updates: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(body)) {
-      if (allowedFields.includes(key)) {
-        updates[key] = value;
-      }
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No hay campos válidos para actualizar' } as ApiResponse<null>,
-        { status: 400 }
-      );
-    }
-
-    // Build dynamic UPDATE query
-    const setClauses = Object.entries(updates).map(([key, value]) => `${key} = ${value}`);
-    const updateQuery = `UPDATE renovaciones SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = ${id} RETURNING *`;
-
-    const result = await db.query<Renovacion>(updateQuery);
+    const result = await sql`
+      UPDATE renovaciones
+      SET estado = ${estado}, semaforo = ${semaforo}, riesgo_churn_score = ${riesgo_churn_score}, updated_at = NOW()
+      WHERE id = ${parseInt(id)}
+      RETURNING *
+    `;
 
     if (!result.length) {
       return NextResponse.json(
@@ -62,7 +37,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      data: result[0],
+      data: result[0] as Renovacion,
     } as ApiResponse<Renovacion>);
   } catch (error) {
     console.error('PATCH /api/renovaciones/[id] error:', error);
@@ -89,11 +64,7 @@ export async function GET(
 
     const { id } = await params;
 
-    const result = await db<Renovacion>`
-      SELECT *
-      FROM renovaciones
-      WHERE id = ${parseInt(id)}
-    `;
+    const result = await sql`SELECT * FROM renovaciones WHERE id = ${parseInt(id)}`;
 
     if (!result.length) {
       return NextResponse.json(
@@ -104,7 +75,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result[0],
+      data: result[0] as Renovacion,
     } as ApiResponse<Renovacion>);
   } catch (error) {
     console.error('GET /api/renovaciones/[id] error:', error);

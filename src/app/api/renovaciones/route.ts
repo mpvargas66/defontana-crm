@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { sql } from '@/lib/db';
 import { Renovacion, ApiResponse } from '@/types';
 
 // GET /api/renovaciones
@@ -15,32 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const estado = searchParams.get('estado');
-    const semaforo = searchParams.get('semaforo');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
-
-    let query = db`
-      SELECT
-        r.id, r.cliente_id, r.id_renovacion, r.fecha_vencimiento,
-        r.fecha_creacion, r.ciclo, r.monto_uf, r.mrr_uf, r.ejecutivo_id,
-        r.estado, r.semaforo, r.riesgo_churn_score, r.estado_operacion,
-        r.tipo_pago, r.tarjeta_suscrita, r.requiere_follow_up,
-        r.escalado_a_gerencia, r.created_at, r.updated_at,
-        c.nombre_cliente, u.nombre as ejecutivo_nombre
-      FROM renovaciones r
-      JOIN clientes c ON r.cliente_id = c.id
-      JOIN usuarios u ON r.ejecutivo_id = u.id
-      WHERE 1=1
-    `;
-
-    if (estado) query = db`${query} AND r.estado = ${estado}`;
-    if (semaforo) query = db`${query} AND r.semaforo = ${semaforo}`;
-
-    query = db`${query} ORDER BY r.fecha_vencimiento ASC LIMIT ${limit} OFFSET ${offset}`;
-
-    const renovaciones = await query;
+    const renovaciones = await sql`SELECT * FROM renovaciones ORDER BY fecha_vencimiento ASC LIMIT 50`;
 
     return NextResponse.json({
       success: true,
@@ -86,7 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await db<Renovacion>`
+    const result = await sql`
       INSERT INTO renovaciones (
         cliente_id, fecha_vencimiento, ciclo, monto_uf, mrr_uf,
         ejecutivo_id, estado, semaforo
@@ -99,7 +74,7 @@ export async function POST(request: NextRequest) {
     `;
 
     return NextResponse.json(
-      { success: true, data: result[0] } as ApiResponse<Renovacion>,
+      { success: true, data: result[0] as Renovacion } as ApiResponse<Renovacion>,
       { status: 201 }
     );
   } catch (error) {

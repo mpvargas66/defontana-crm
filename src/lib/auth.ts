@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { db } from './db';
+import { sql } from './db';
 import { Usuario } from '@/types';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -33,17 +33,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Query DB for user
         try {
-          const user = await db<Usuario>`
-            SELECT id, nombre, email, rol, activo
-            FROM usuarios
-            WHERE email = ${email} AND activo = true
-          `;
+          const usuario = await sql`SELECT * FROM usuarios WHERE email = ${email}`;
 
-          if (!user.length) {
+          if (!usuario.length) {
             throw new Error('Usuario no encontrado');
           }
 
-          const userData = user[0];
+          const userData = usuario[0] as Usuario;
 
           // In production, compare hashed password
           // For now, simplified auth

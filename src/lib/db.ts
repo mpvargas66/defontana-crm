@@ -1,10 +1,8 @@
 import postgres from 'postgres';
 
 if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
+  throw new Error('DATABASE_URL is not set');
 }
 
-const sql = postgres(process.env.DATABASE_URL);
-const db = sql; // Alias para compatibilidad
-
-export { sql, db };
+export const sql = postgres(process.env.DATABASE_URL);
+export const db = sql;
