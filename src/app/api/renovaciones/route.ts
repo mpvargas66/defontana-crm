@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         ejecutivo_id, estado, semaforo
       )
       VALUES (
-        ${cliente_id}, ${new Date(fecha_vencimiento)}, ${ciclo},
+        ${cliente_id}, ${new Date(fecha_vencimiento).toISOString()}, ${ciclo},
         ${monto_uf}, ${mrr_uf}, ${ejecutivo_id}, ${estado}, ${semaforo}
       )
       RETURNING *
