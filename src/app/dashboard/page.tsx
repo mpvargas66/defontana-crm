@@ -181,7 +181,13 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {renovacion.monto_uf ? `$${renovacion.monto_uf.toFixed(2)} UF` : '-'}
+                        {renovacion.monto_uf
+                          ? `$${
+                              typeof renovacion.monto_uf === 'number'
+                                ? renovacion.monto_uf.toFixed(2)
+                                : parseFloat(String(renovacion.monto_uf)).toFixed(2)
+                            } UF`
+                          : '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {renovacion.riesgo_churn_score}/10
