@@ -28,7 +28,7 @@ export async function PATCH(
       RETURNING *
     `;
 
-    if (!result.length) {
+    if (!result.rows.length) {
       return NextResponse.json(
         { success: false, error: 'Renovación no encontrada' } as ApiResponse<null>,
         { status: 404 }
@@ -37,7 +37,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      data: result[0] as Renovacion,
+      data: result.rows[0] as Renovacion,
     } as ApiResponse<Renovacion>);
   } catch (error) {
     console.error('PATCH /api/renovaciones/[id] error:', error);
@@ -66,7 +66,7 @@ export async function GET(
 
     const result = await sql`SELECT * FROM renovaciones WHERE id = ${parseInt(id)}`;
 
-    if (!result.length) {
+    if (!result.rows.length) {
       return NextResponse.json(
         { success: false, error: 'Renovación no encontrada' } as ApiResponse<null>,
         { status: 404 }
@@ -75,7 +75,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result[0] as Renovacion,
+      data: result.rows[0] as Renovacion,
     } as ApiResponse<Renovacion>);
   } catch (error) {
     console.error('GET /api/renovaciones/[id] error:', error);
