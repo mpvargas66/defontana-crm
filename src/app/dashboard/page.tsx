@@ -24,14 +24,8 @@ interface RenovacionData {
   ejecutivo_id: number;
   estado: string;
   semaforo: string;
-  nombre_cliente?: string;
-  servicio?: string;
-  plan?: string;
-  segmento?: string;
-  region?: string;
-  cantidad_empleados?: number;
-  fecha_creacion?: string;
-  ejecutivo_nombre?: string;
+  ejecutivo_nombre: string;
+  cliente: ClienteData;
 }
 
 export default function DashboardPage() {
