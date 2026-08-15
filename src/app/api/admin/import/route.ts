@@ -186,7 +186,6 @@ export async function POST(request: NextRequest) {
         loaded++;
       } catch (err: any) {
         console.error('Error procesando row:', {
-          nombreCliente,
           error: err.message,
           code: err.code,
           detail: err.detail,
