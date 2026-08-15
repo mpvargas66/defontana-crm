@@ -23,36 +23,35 @@ function excelBoolToBoolean(val: any): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('========== START IMPORT ==========');
-  console.log('Step 1: DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  console.error('LOG_POINT_1: Endpoint called');
 
   try {
-    console.log('Step 2: Testing connection');
-    const testResult = await pool.query('SELECT NOW()');
-    console.log('Step 3: Connection OK');
+    console.error('LOG_POINT_2: Inside try block');
+    console.error('========== START IMPORT ==========');
+    console.error('LOG_POINT_3: After start log');
 
-    console.log('Step 4: Parsing request body');
     const body = await request.json();
-    console.log('Step 5: Body parsed, received rows:', body.rows?.length || 0);
+    console.error('LOG_POINT_4: Body parsed');
 
     const rows = body.rows as ImportRow[];
+    console.error('LOG_POINT_5: Rows extracted, count:', rows?.length);
 
     if (!rows || rows.length === 0) {
-      console.log('Step 6: ERROR - no rows');
+      console.error('LOG_POINT_6: No rows, returning');
       return NextResponse.json({ success: false, message: 'Sin datos' }, { status: 400 });
     }
 
-    console.log('Step 7: Starting loop with', rows.length, 'rows');
+    console.error('LOG_POINT_7: Starting loop');
     let loaded = 0;
     let errors = 0;
 
     for (const row of rows) {
-      console.log('Step 8: Processing row -', row['Nombre Cliente']);
+      console.error('LOG_POINT_8: Processing row -', row['Nombre Cliente']);
       try {
         const idCliente = String(row['Id Cliente'] || '').trim();
         const nombreCliente = String(row['Nombre Cliente'] || '').trim();
 
-        console.log('Step 9: Extracted basic fields -', nombreCliente);
+        console.error('LOG_POINT_9: Extracted basic fields -', nombreCliente);
 
         // MONTO
         let totalRenovacion = 0;
@@ -81,7 +80,7 @@ export async function POST(request: NextRequest) {
         const fechaTarjetaSuscrita = convertExcelDate(row['Fecha Tarjeta Suscrita']);
         const fechaInicio = convertExcelDate(row['Fecha Inicio de Servicio']);
 
-        console.log('Step 10: Dates converted');
+        console.error('LOG_POINT_10: Dates converted');
 
         // STRINGS
         const servicio = String(row['Servicio'] || '').trim();
@@ -104,7 +103,7 @@ export async function POST(request: NextRequest) {
         const cuadranteZenda = String(row['Cuadrante Zenda'] || '').trim();
         const numeroOt = String(row['Numero OT'] || '').trim();
 
-        console.log('Step 11: Strings extracted');
+        console.error('LOG_POINT_11: Strings extracted');
 
         // BOOLEANOS
         const modular = excelBoolToBoolean(row['Modular']);
@@ -114,7 +113,7 @@ export async function POST(request: NextRequest) {
         const usaTivendo = excelBoolToBoolean(row['Usa Tivendo']);
         const usaZenda = excelBoolToBoolean(row['Usa Zenda']);
 
-        console.log('Step 12: Booleans extracted');
+        console.error('LOG_POINT_12: Booleans extracted');
 
         const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
 
@@ -124,15 +123,15 @@ export async function POST(request: NextRequest) {
           cantidadEmpleados = parseInt(empStr, 10);
         }
 
-        console.log('Step 13: All fields ready, about to validate');
+        console.error('LOG_POINT_13: All fields ready, about to validate');
 
         if (!idCliente || !nombreCliente) {
-          console.log('Step 14: Validation failed - missing id or name');
+          console.error('LOG_POINT_14: Validation failed - missing id or name');
           errors++;
           continue;
         }
 
-        console.log('Step 15: About to insert cliente');
+        console.error('LOG_POINT_15: About to insert cliente');
 
         let clienteId: number;
         try {
@@ -185,9 +184,9 @@ export async function POST(request: NextRequest) {
           );
 
           clienteId = clientResult.rows[0].id;
-          console.log('Step 16: Cliente inserted, ID:', clienteId);
+          console.error('LOG_POINT_16: Cliente inserted, ID:', clienteId);
         } catch (dbErr: any) {
-          console.error('Step 16 ERROR - DB Insert failed:', {
+          console.error('LOG_POINT_16_ERROR - DB Insert failed:', {
             message: dbErr.message,
             code: dbErr.code,
             constraint: dbErr.constraint,
@@ -214,7 +213,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        console.log('Step 17: Ejecutivo ready, about to insert renovacion');
+        console.error('LOG_POINT_17: Ejecutivo ready, about to insert renovacion');
 
         // INSERT RENOVACIONES con mrr_uf y numero_ot
         await pool.query(
@@ -226,10 +225,10 @@ export async function POST(request: NextRequest) {
           [clienteId, `${idCliente}-${Date.now()}`, fechaVencimiento, totalRenovacion, mrrUf, ejecutivoId, semaforo, numeroOt]
         );
 
-        console.log('Step 18: Renovacion inserted');
+        console.error('LOG_POINT_18: Renovacion inserted');
         loaded++;
       } catch (err: any) {
-        console.error('Step 18 ERROR - Row processing failed:', {
+        console.error('LOG_POINT_18_ERROR - Row processing failed:', {
           error: err.message,
           code: err.code,
           detail: err.detail,
@@ -238,10 +237,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('Step 19: Loop complete, loaded:', loaded, 'errors:', errors);
+    console.error('LOG_POINT_19: Loop complete, loaded:', loaded, 'errors:', errors);
     return NextResponse.json({ success: true, loaded, errors });
   } catch (error) {
-    console.error('Step 20 ERROR - Main try-catch:', error);
+    console.error('LOG_POINT_20_ERROR - Main try-catch:', error);
     return NextResponse.json({ success: false, message: 'Error en servidor' }, { status: 500 });
   }
 }
