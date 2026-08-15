@@ -54,6 +54,33 @@ export default function DataImportPage() {
     }
   };
 
+  const handleArchive = async () => {
+    if (!window.confirm('⚠️ Esto borrará TODOS los datos. ¿Estás seguro?')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/archive', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer dev123`,
+        },
+      });
+
+      const data = await response.json();
+      setMessage(data.success ? '✅ BD archivada. Lista para nueva carga.' : '❌ Error archivando');
+      if (data.success) {
+        setFile(null);
+        setPreview([]);
+      }
+    } catch (error) {
+      setMessage('❌ Error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ padding: '40px', fontFamily: 'system-ui', maxWidth: '1200px' }}>
       <h1>Importar Datos</h1>
@@ -98,22 +125,41 @@ export default function DataImportPage() {
         </div>
       )}
 
-      <button
-        onClick={handleUpload}
-        disabled={!file || loading}
-        style={{
-          padding: '12px 24px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          backgroundColor: file && !loading ? '#0066cc' : '#ccc',
-          color: 'white',
-          border: 'none',
-          cursor: file && !loading ? 'pointer' : 'default',
-          borderRadius: '4px',
-        }}
-      >
-        {loading ? 'Cargando...' : 'Cargar a BD'}
-      </button>
+      <div style={{ display: 'flex', gap: '12px' }}>
+        <button
+          onClick={handleUpload}
+          disabled={!file || loading}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            backgroundColor: file && !loading ? '#0066cc' : '#ccc',
+            color: 'white',
+            border: 'none',
+            cursor: file && !loading ? 'pointer' : 'default',
+            borderRadius: '4px',
+          }}
+        >
+          {loading ? 'Cargando...' : 'Cargar a BD'}
+        </button>
+
+        <button
+          onClick={handleArchive}
+          disabled={loading}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            backgroundColor: '#dc2626',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            borderRadius: '4px',
+          }}
+        >
+          🗑️ Archivar BD
+        </button>
+      </div>
 
       {message && <p style={{ marginTop: '20px', fontSize: '16px', fontWeight: 'bold' }}>{message}</p>}
     </div>
