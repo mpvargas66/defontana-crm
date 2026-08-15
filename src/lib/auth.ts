@@ -15,17 +15,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        const email = String(credentials.email);
+        const password = String(credentials.password);
+
         try {
           const result = await sql<Usuario>`
-            SELECT * FROM usuarios WHERE email = ${credentials.email}
+            SELECT * FROM usuarios WHERE email = ${email}
           `;
 
           const usuario = result.rows[0];
 
           if (!usuario) return null;
 
-          // Check password (en producción, usar bcrypt)
-          if (credentials.password !== process.env.ADMIN_PASSWORD) {
+          if (password !== process.env.ADMIN_PASSWORD) {
             return null;
           }
 
