@@ -1,177 +1,269 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Renovacion, ApiResponse } from '@/types';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+
+interface ClienteData {
+  id: number;
+  nombre_cliente: string;
+  rut_cliente: string;
+  servicio: string;
+  plan: string;
+  segmento: string;
+  region: string;
+  cantidad_empleados: number;
+  fecha_creacion: string;
+}
+
+interface RenovacionData {
+  id: number;
+  cliente_id: number;
+  id_renovacion: string;
+  fecha_vencimiento: string;
+  monto_uf: number;
+  ejecutivo_id: number;
+  estado: string;
+  semaforo: string;
+  nombre_cliente?: string;
+  servicio?: string;
+  plan?: string;
+  segmento?: string;
+  region?: string;
+  cantidad_empleados?: number;
+  fecha_creacion?: string;
+  ejecutivo_nombre?: string;
+}
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const [renovaciones, setRenovaciones] = useState<Renovacion[]>([]);
+  const { data: session } = useSession();
+  const [renovaciones, setRenovaciones] = useState<RenovacionData[]>([]);
+  const [selectedRenovacion, setSelectedRenovacion] = useState<RenovacionData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchRenovaciones();
-    }
-  }, [status]);
-
-  const fetchRenovaciones = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/renovaciones');
-      const data: ApiResponse<Renovacion[]> = await response.json();
-
-      if (data.success) {
+    const fetchRenovaciones = async () => {
+      try {
+        const response = await fetch('/api/renovaciones');
+        const data = await response.json();
         setRenovaciones(data.data || []);
-      } else {
-        setError(data.error || 'Error al cargar renovaciones');
+      } catch (error) {
+        console.error('Error fetching:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Error de conexión');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    fetchRenovaciones();
+  }, []);
+
+  const handleRowClick = (renovacion: RenovacionData) => {
+    setSelectedRenovacion(renovacion);
   };
 
-  if (status === 'loading' || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600">Cargando...</div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
-  const semaforoColors: Record<string, string> = {
-    verde: 'bg-green-100 text-green-800',
-    amarillo: 'bg-yellow-100 text-yellow-800',
-    rojo: 'bg-red-100 text-red-800',
-    indeterminado: 'bg-gray-100 text-gray-800',
+  const handleCloseModal = () => {
+    setSelectedRenovacion(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Defontana</h1>
-            <p className="text-gray-600">Renewals CRM - Dashboard</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-medium text-gray-900">{session.user?.name}</p>
-              <p className="text-sm text-gray-600">{session.user?.email}</p>
-            </div>
-            <button
-              onClick={() => signOut({ redirect: true })}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-            >
-              Salir
-            </button>
-          </div>
-        </div>
-      </div>
+    <div style={{ padding: '20px', fontFamily: 'system-ui' }}>
+      <h1>Dashboard - Renovaciones</h1>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Total Renovaciones</p>
-            <p className="text-3xl font-bold text-gray-900">{renovaciones.length}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Estado: Por Contactar</p>
-            <p className="text-3xl font-bold text-gray-900">
-              {renovaciones.filter((r) => r.estado === 'por_contactar').length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Semáforo: Rojo</p>
-            <p className="text-3xl font-bold text-red-600">
-              {renovaciones.filter((r) => r.semaforo === 'rojo').length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Escaladas a Gerencia</p>
-            <p className="text-3xl font-bold text-gray-900">
-              {renovaciones.filter((r) => r.escalado_a_gerencia).length}
-            </p>
-          </div>
-        </div>
-
-        {/* Renovaciones Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900">Renovaciones</h2>
-          </div>
-
-          {error && (
-            <div className="p-4 bg-red-50 border-l-4 border-red-600 text-red-700">
-              {error}
-            </div>
-          )}
-
-          {renovaciones.length === 0 ? (
-            <div className="p-6 text-center text-gray-600">
-              No hay renovaciones registradas
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f0f0f0' }}>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Cliente</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Servicio</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Plan</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Segmento</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Ejecutivo</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Vencimiento</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Monto (UF)</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Estado</th>
-                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Semáforo</th>
+      {loading ? (
+        <p>Cargando...</p>
+      ) : (
+        <>
+          <div style={{ overflowX: 'auto', marginBottom: '20px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f0f0f0' }}>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Cliente</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Ejecutivo</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Vencimiento</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Monto (UF)</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Estado</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Semáforo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {renovaciones.map((r) => (
+                  <tr
+                    key={r.id}
+                    onClick={() => handleRowClick(r)}
+                    style={{
+                      cursor: 'pointer',
+                      backgroundColor: selectedRenovacion?.id === r.id ? '#e8f4f8' : 'white',
+                      borderBottom: '1px solid #ddd',
+                    }}
+                  >
+                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                      {r.nombre_cliente || 'N/A'}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                      {r.ejecutivo_nombre || 'N/A'}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                      {new Date(r.fecha_vencimiento).toLocaleDateString('es-CL')}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                      {typeof r.monto_uf === 'number' ? r.monto_uf.toFixed(2) : 0}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                      {r.estado}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                      <span
+                        style={{
+                          backgroundColor: r.semaforo === 'rojo' ? '#ffebee' : r.semaforo === 'amarillo' ? '#fff3e0' : '#e8f5e9',
+                          color: r.semaforo === 'rojo' ? '#c62828' : r.semaforo === 'amarillo' ? '#e65100' : '#2e7d32',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {r.semaforo}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {renovaciones.slice(0, 20).map((r: any) => (
-                    <tr key={r.id}>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.nombre_cliente}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.servicio || '-'}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.plan || '-'}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.segmento || '-'}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.ejecutivo_nombre}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                        {new Date(r.fecha_vencimiento).toLocaleDateString('es-CL')}
-                      </td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                        {typeof r.monto_uf === 'number'
-                          ? r.monto_uf.toFixed(2)
-                          : parseFloat(String(r.monto_uf || 0)).toFixed(2)}
-                      </td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.estado}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{r.semaforo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {selectedRenovacion && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  maxWidth: '500px',
+                  width: '90%',
+                  maxHeight: '80vh',
+                  overflowY: 'auto',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
+                    {selectedRenovacion.nombre_cliente}
+                  </h2>
+                  <button
+                    onClick={handleCloseModal}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '24px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>RUT</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.rut_cliente || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Servicio</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.servicio || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Plan</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.plan || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Segmento</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.segmento || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Región</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.region || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Empleados</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cantidad_empleados || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Ejecutivo</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.ejecutivo_nombre || 'N/A'}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Vencimiento</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>
+                      {new Date(selectedRenovacion.fecha_vencimiento).toLocaleDateString('es-CL')}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Monto (UF)</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>
+                      {typeof selectedRenovacion.monto_uf === 'number' ? selectedRenovacion.monto_uf.toFixed(2) : 0}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Estado</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.estado}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Semáforo</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.semaforo}</p>
+                  </div>
+
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Fecha Creación</p>
+                    <p style={{ margin: 0, fontWeight: '500' }}>
+                      {selectedRenovacion.fecha_creacion
+                        ? new Date(selectedRenovacion.fecha_creacion).toLocaleDateString('es-CL')
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCloseModal}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginTop: '20px',
+                    backgroundColor: '#0066cc',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           )}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
