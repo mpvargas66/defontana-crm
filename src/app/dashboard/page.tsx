@@ -31,7 +31,6 @@ interface RenovacionData {
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [renovaciones, setRenovaciones] = useState<RenovacionData[]>([]);
-  const [selectedRenovacion, setSelectedRenovacion] = useState<RenovacionData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,213 +49,129 @@ export default function DashboardPage() {
     fetchRenovaciones();
   }, []);
 
-  const handleRowClick = (renovacion: RenovacionData) => {
-    setSelectedRenovacion(renovacion);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedRenovacion(null);
-  };
-
   return (
     <div style={{ padding: '20px', fontFamily: 'system-ui' }}>
-      <h1>Dashboard - Renovaciones</h1>
+      <h1>Dashboard - Renovaciones (Total: {renovaciones.length})</h1>
 
       {loading ? (
         <p>Cargando...</p>
       ) : (
-        <>
-          <div style={{ overflowX: 'auto', marginBottom: '20px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f0f0f0' }}>
-                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Cliente</th>
-                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Ejecutivo</th>
-                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Vencimiento</th>
-                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Monto (UF)</th>
-                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Estado</th>
-                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Semáforo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renovaciones.map((r) => (
-                  <tr
-                    key={r.id}
-                    onClick={() => handleRowClick(r)}
-                    style={{
-                      cursor: 'pointer',
-                      backgroundColor: selectedRenovacion?.id === r.id ? '#e8f4f8' : 'white',
-                      borderBottom: '1px solid #ddd',
-                    }}
-                  >
-                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      {r.cliente?.nombre_cliente || 'N/A'}
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      {r.ejecutivo_nombre || 'N/A'}
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      {new Date(r.fecha_vencimiento).toLocaleDateString('es-CL')}
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      {typeof r.monto_uf === 'number' ? r.monto_uf.toFixed(2) : 0}
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      {r.estado}
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '12px' }}>
-                      <span
-                        style={{
-                          backgroundColor: r.semaforo === 'rojo' ? '#ffebee' : r.semaforo === 'amarillo' ? '#fff3e0' : '#e8f5e9',
-                          color: r.semaforo === 'rojo' ? '#c62828' : r.semaforo === 'amarillo' ? '#e65100' : '#2e7d32',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {r.semaforo}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {selectedRenovacion && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1000,
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: 'white',
-                  borderRadius: '12px',
-                  padding: '24px',
-                  maxWidth: '500px',
-                  width: '90%',
-                  maxHeight: '80vh',
-                  overflowY: 'auto',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-                    {selectedRenovacion.cliente?.nombre_cliente}
-                  </h2>
-                  <button
-                    onClick={handleCloseModal}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '24px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>RUT</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.rut_cliente || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Servicio</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.servicio || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Plan</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.plan || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Segmento</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.segmento || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Región</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.region || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Empleados</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.cliente?.cantidad_empleados || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Ejecutivo</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.ejecutivo_nombre || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Vencimiento</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>
-                      {new Date(selectedRenovacion.fecha_vencimiento).toLocaleDateString('es-CL')}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Monto (UF)</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>
-                      {typeof selectedRenovacion.monto_uf === 'number' ? selectedRenovacion.monto_uf.toFixed(2) : 0}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Estado</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.estado}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Semáforo</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{selectedRenovacion.semaforo}</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Fecha Creación</p>
-                    <p style={{ margin: 0, fontWeight: '500' }}>
-                      {selectedRenovacion.cliente?.fecha_creacion
-                        ? new Date(selectedRenovacion.cliente.fecha_creacion).toLocaleDateString('es-CL')
-                        : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleCloseModal}
+        <div style={{ overflowX: 'auto', marginBottom: '20px', border: '1px solid #ddd', borderRadius: '4px' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              minWidth: '1600px',
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: '#0066cc', color: 'white', position: 'sticky', top: 0 }}>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '200px' }}>
+                  Cliente
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '120px' }}>
+                  RUT
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '120px' }}>
+                  Servicio
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '120px' }}>
+                  Plan
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '100px' }}>
+                  Segmento
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '150px' }}>
+                  Región
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '80px' }}>
+                  Empleados
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '140px' }}>
+                  Ejecutivo
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '120px' }}>
+                  Vencimiento
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '100px' }}>
+                  Monto (UF)
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '130px' }}>
+                  Estado
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '100px' }}>
+                  Semáforo
+                </th>
+                <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left', minWidth: '140px' }}>
+                  Creación
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {renovaciones.map((r, idx) => (
+                <tr
+                  key={r.id}
                   style={{
-                    width: '100%',
-                    padding: '12px',
-                    marginTop: '20px',
-                    backgroundColor: '#0066cc',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
+                    backgroundColor: idx % 2 === 0 ? '#f9f9f9' : 'white',
+                    borderBottom: '1px solid #ddd',
                   }}
                 >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    <strong>{r.cliente?.nombre_cliente || 'N/A'}</strong>
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.cliente?.rut_cliente || 'N/A'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.cliente?.servicio || 'N/A'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.cliente?.plan || 'N/A'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.cliente?.segmento || 'N/A'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.cliente?.region || 'N/A'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'center' }}>
+                    {r.cliente?.cantidad_empleados || '0'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.ejecutivo_nombre || 'N/A'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {new Date(r.fecha_vencimiento).toLocaleDateString('es-CL')}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px', fontWeight: 'bold', textAlign: 'right' }}>
+                    {typeof r.monto_uf === 'number' ? r.monto_uf.toFixed(2) : '0.00'}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.estado}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    <span
+                      style={{
+                        backgroundColor:
+                          r.semaforo === 'rojo' ? '#ffebee' : r.semaforo === 'amarillo' ? '#fff3e0' : '#e8f5e9',
+                        color: r.semaforo === 'rojo' ? '#c62828' : r.semaforo === 'amarillo' ? '#e65100' : '#2e7d32',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {r.semaforo}
+                    </span>
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '12px' }}>
+                    {r.cliente?.fecha_creacion ? new Date(r.cliente.fecha_creacion).toLocaleDateString('es-CL') : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
