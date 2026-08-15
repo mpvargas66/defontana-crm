@@ -18,11 +18,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await sql('SELECT * FROM renovaciones ORDER BY fecha_vencimiento ASC LIMIT 50');
+    const result = await sql.query('SELECT * FROM renovaciones ORDER BY fecha_vencimiento ASC LIMIT 50');
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: result.rows,
     } as ApiResponse<unknown>);
   } catch (error) {
     console.error('GET /api/renovaciones error:', error);
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await sql(
+    const result = await sql.query(
       `INSERT INTO renovaciones (
         cliente_id, fecha_vencimiento, ciclo, monto_uf, mrr_uf,
         ejecutivo_id, estado, semaforo
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json(
-      { success: true, data: result[0] as Renovacion } as ApiResponse<Renovacion>,
+      { success: true, data: result.rows[0] as Renovacion } as ApiResponse<Renovacion>,
       { status: 201 }
     );
   } catch (error) {

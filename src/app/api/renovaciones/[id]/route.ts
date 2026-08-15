@@ -21,7 +21,7 @@ export async function PATCH(
     const body = await request.json();
     const { estado, semaforo, riesgo_churn_score } = body;
 
-    const result = await sql(
+    const result = await sql.query(
       `UPDATE renovaciones
        SET estado = $1, semaforo = $2, riesgo_churn_score = $3, updated_at = NOW()
        WHERE id = $4
@@ -29,7 +29,7 @@ export async function PATCH(
       [estado, semaforo, riesgo_churn_score, parseInt(id)]
     );
 
-    if (!result.length) {
+    if (!result.rows.length) {
       return NextResponse.json(
         { success: false, error: 'Renovación no encontrada' } as ApiResponse<null>,
         { status: 404 }
@@ -38,7 +38,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      data: result[0] as Renovacion,
+      data: result.rows[0] as Renovacion,
     } as ApiResponse<Renovacion>);
   } catch (error) {
     console.error('PATCH /api/renovaciones/[id] error:', error);
@@ -65,9 +65,9 @@ export async function GET(
 
     const { id } = await params;
 
-    const result = await sql('SELECT * FROM renovaciones WHERE id = $1', [parseInt(id)]);
+    const result = await sql.query('SELECT * FROM renovaciones WHERE id = $1', [parseInt(id)]);
 
-    if (!result.length) {
+    if (!result.rows.length) {
       return NextResponse.json(
         { success: false, error: 'Renovación no encontrada' } as ApiResponse<null>,
         { status: 404 }
@@ -76,7 +76,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result[0] as Renovacion,
+      data: result.rows[0] as Renovacion,
     } as ApiResponse<Renovacion>);
   } catch (error) {
     console.error('GET /api/renovaciones/[id] error:', error);
