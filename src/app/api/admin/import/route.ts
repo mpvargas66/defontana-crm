@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
 
     for (const row of rows) {
       try {
+        console.log('Procesando:', {
+          idCliente: row['Id Cliente'] || row['ID Cliente'],
+          nombreCliente: row['Nombre'],
+          ejecutivo: row['Ejecutivo PostVenta'],
+          monto: row['Total Renovación (UF)'],
+        });
+
         const idCliente = String(row['Id Cliente'] || row['ID Cliente'] || '').trim();
         const nombreCliente = String(row['Nombre'] || '').trim();
         const rutCliente = String(row['Rut'] || '').trim();
@@ -33,6 +40,7 @@ export async function POST(request: NextRequest) {
         const semaforo = String(row['Semáforo'] || 'verde').trim().toLowerCase();
 
         if (!idCliente || !nombreCliente) {
+          console.log('Saltando fila: falta idCliente o nombreCliente');
           errors++;
           continue;
         }
@@ -76,7 +84,7 @@ export async function POST(request: NextRequest) {
 
         loaded++;
       } catch (err) {
-        console.error('Error row:', err);
+        console.error('Error row:', row, err);
         errors++;
       }
     }
