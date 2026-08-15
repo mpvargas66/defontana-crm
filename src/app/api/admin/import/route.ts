@@ -10,16 +10,13 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const rows = body.rows as ImportRow[];
 
     if (!rows || rows.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Sin datos' } as ApiResponse<null>,
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: 'Sin datos' }, { status: 400 });
     }
 
     let loaded = 0;
@@ -40,7 +37,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
           continue;
         }
 
-        // Inserta cliente
         const clientResult = await pool.query(
           `INSERT INTO clientes (id_cliente, nombre_cliente, rut_cliente, es_activo, created_at, updated_at)
            VALUES ($1, $2, $3, true, NOW(), NOW())
@@ -51,7 +47,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
         const clienteId = clientResult.rows[0].id;
 
-        // Obtén o crea ejecutivo
         let ejecutivoId = 1;
         if (ejecutivo) {
           const execResult = await pool.query(
@@ -71,7 +66,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
           }
         }
 
-        // Inserta renovación
         await pool.query(
           `INSERT INTO renovaciones
            (cliente_id, id_renovacion, fecha_vencimiento, ciclo, monto_uf, ejecutivo_id, semaforo, estado, created_at, updated_at)
@@ -87,11 +81,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       }
     }
 
-    return NextResponse.json({ success: true, loaded, errors } as ApiResponse<unknown>);
+    return NextResponse.json({ success: true, loaded, errors });
   } catch (error) {
     console.error('Import error:', error);
     return NextResponse.json(
-      { success: false, message: 'Error en servidor' } as ApiResponse<null>,
+      { success: false, message: 'Error en servidor' },
       { status: 500 }
     );
   }
