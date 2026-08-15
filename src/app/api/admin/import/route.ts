@@ -7,6 +7,13 @@ interface ImportRow {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+pool.on('error', (err) => {
+  console.error('Pool error:', err);
 });
 
 function excelBoolToBoolean(val: any): boolean {
@@ -17,6 +24,13 @@ function excelBoolToBoolean(val: any): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    console.log('DATABASE_URL starts with:', process.env.DATABASE_URL?.substring(0, 30));
+
+    // Test connection
+    const testResult = await pool.query('SELECT 1 as test');
+    console.log('Connection test:', testResult.rows);
+
     const body = await request.json();
     const rows = body.rows as ImportRow[];
 
