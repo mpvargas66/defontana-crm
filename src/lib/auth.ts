@@ -18,31 +18,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = String(credentials.email);
         const password = String(credentials.password);
 
-        try {
-          const result = await sql.query(
-            'SELECT * FROM usuarios WHERE email = $1',
-            [email]
-          );
-
-          const usuario = result.rows[0];
-
-          if (!usuario) return null;
-
-          const adminPassword = process.env.ADMIN_PASSWORD || 'dev123';
-          if (password !== adminPassword) {
-            return null;
-          }
-
+        // Demo: allow marco@arauko.com with dev123
+        if (email === 'marco@arauko.com' && password === 'dev123') {
           return {
-            id: usuario.id.toString(),
-            email: usuario.email,
-            name: usuario.nombre,
-            rol: usuario.rol,
+            id: '1',
+            email: 'marco@arauko.com',
+            name: 'Marco Vargas',
+            rol: 'admin',
           };
-        } catch (error) {
-          console.error('Auth error:', error);
-          return null;
         }
+
+        return null;
       },
     }),
   ],
